@@ -27,7 +27,7 @@ def not_bad(s):
     i = s.find("not")
     j = s.find("bad")
     t = s
-    if i != -1 and j != -1 and i < j:
+    if i != -1 and i < j:
         t = s[:i]+"good"+s[j+3:]
     return t
  

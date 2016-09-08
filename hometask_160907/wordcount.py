@@ -51,6 +51,7 @@ def make_dic(filename):
                 res[word_lower] = 1
             else:
                 res[word_lower] += 1
+    f.close()
     return res
 
 def print_words(filename):
