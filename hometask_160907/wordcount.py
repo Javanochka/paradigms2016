@@ -62,10 +62,7 @@ def print_words(filename):
 
 def print_top(filename):
     dic_list = list(make_dic(filename).items())
-    res = []
-    for item in dic_list:
-        word, count = item
-        res += [(count,word)]
+    res = [(count, word) for word,count in dic_list]
     res.sort(reverse=True)
     res = res[:20]
     for item in res:
