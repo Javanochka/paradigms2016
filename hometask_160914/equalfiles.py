@@ -9,7 +9,7 @@ def getAllFiles(dirpath):
     pattern = re.compile(r"~|\.")
     for dirp, _, files in os.walk(dirpath):
         for f in files: 
-            if not pattern.match(f):
+            if not pattern.match(f) and not os.path.islink(f):
                 yield os.path.join(dirp, f)
 
 def getHashOfFile(filepath):
