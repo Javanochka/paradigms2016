@@ -38,15 +38,9 @@ def printSimilarities(dirpath, fullpath, fplen):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="finds in directory all equal files")
-    parser.add_argument("-f", "--fullpath", action="store_true") #else path in given directory
+    parser.add_argument("-f", "--fullpath", action="store_true") #else shortpath in given directory
     parser.add_argument("path", type=str)
     args = parser.parse_args()
-   # res = getEquals(args.path) 
     pathdir = os.path.abspath(args.path)
     printSimilarities(pathdir, args.fullpath, len(pathdir)+1)
-"""    
-    if args.fullpath:
-        pass
-    else:
-        pass
-"""
+
