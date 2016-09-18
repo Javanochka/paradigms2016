@@ -2,14 +2,15 @@
 import argparse
 import os
 from hashlib import sha1 as niceHasher 
+from collections import defaultdict
 import re
 
 def getAllFiles(dirpath):
-    res = []
     pattern = re.compile(r"~|\.")
     for dirp, _, files in os.walk(dirpath):
-        res += [os.path.join(dirp, f) for f in files if not pattern.match(f)]
-    return res
+        for f in files: 
+            if not pattern.match(f):
+                yield os.path.join(dirp, f)
 
 def getHashOfFile(filepath):
     hasher = niceHasher()
@@ -20,18 +21,16 @@ def getHashOfFile(filepath):
             hasher.update(dose)
     return hasher.hexdigest()
 
-def getDictOfFiles(listOfFiles, fullpath, fplen):
-    res = {}
+def getDictOfFiles(listOfFiles, fullpath, dirpath):
+    res = defaultdict(list)
     for f in listOfFiles:
         hashf = getHashOfFile(f)
-        if not hashf in res:
-            res[hashf] = []
-        res[hashf].append(f if fullpath else f[fplen:])
+        res[hashf].append(f if fullpath else os.path.relpath(f, start=dirpath))
     return res
 
-def printSimilarities(dirpath, fullpath, fplen):
-    dic = getDictOfFiles(getAllFiles(dirpath), fullpath, fplen)
-    res = [l for l in dic.values() if len(l) > 1]
+def printSimilarities(dirpath, fullpath):
+    dic = getDictOfFiles(getAllFiles(dirpath), fullpath, dirpath)
+    res = (l for l in dic.values() if len(l) > 1)
     for l in res:
         print(":".join(l))
 
@@ -42,5 +41,5 @@ if __name__ == '__main__':
     parser.add_argument("path", type=str)
     args = parser.parse_args()
     pathdir = os.path.abspath(args.path)
-    printSimilarities(pathdir, args.fullpath, len(pathdir)+1)
+    printSimilarities(pathdir, args.fullpath)
 
