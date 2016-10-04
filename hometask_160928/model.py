@@ -94,20 +94,13 @@ class Conditional:
         self.if_false = if_false
 
     def evaluate(self, scope):
-        if self.condition.evaluate(scope).value == 0:
-            #if_false
-            if self.if_false == None:
-                return None
-            for expression in self.if_false[:-1]:
-                expression.evaluate(scope)
-            return self.if_false[-1].evaluate(scope)
-        else:
-            #if_true
-            if self.if_true == None:
-                return None
-            for expression in self.if_true[:-1]:
-                expression.evaluate(scope)
-            return self.if_true[-1].evaluate(scope)
+        body = self.if_false if self.condition.evaluate(scope).value == 0 else self.if_true
+        if body == None:
+            return None
+        for expression in body[:-1]:
+            expression.evaluate(scope)
+        return body[-1].evaluate(scope)
+        
 
 
 
@@ -158,12 +151,9 @@ class FunctionCall:
 
     def evaluate(self, scope):
         function = self.fun_expr.evaluate(scope)
-        eval_args = []
-        for elem in self.args:
-            eval_args.append(elem.evaluate(scope))
         call_scope = Scope(scope)
-        for i in range(len(self.args)):
-            call_scope[function.args[i]] = eval_args[i]
+        for name, expr in zip(function.args, self.args):
+            call_scope[name] = expr.evaluate(scope)
         return function.evaluate(call_scope)
 
 
@@ -185,7 +175,21 @@ class BinaryOperation:
     Результатом вычисления бинарной операции является объект Number.
     Поддерживаемые операции:
     “+”, “-”, “*”, “/”, “%”, “==”, “!=”,
-    “<”, “>”, “<=”, “>=”, “&&”, “||”."""
+    “<”, “>”, “<=”, “>=”, “&&”, “||”.""" 
+    operation = dict()
+    operation['+'] = lambda x,y: x + y
+    operation['-'] = lambda x,y: x - y
+    operation['*'] = lambda x,y: x * y
+    operation['/'] = lambda x,y: x // y
+    operation['%'] = lambda x,y: x % y
+    operation['=='] = lambda x,y: 1 if x == y else 0
+    operation['!='] = lambda x,y: 1 if x != y else 0
+    operation['<'] = lambda x,y: 1 if x < y else 0
+    operation['>'] = lambda x,y: 1 if x > y else 0
+    operation['<='] = lambda x,y: 1 if x <= y else 0
+    operation['>='] = lambda x,y: 1 if x >= y else 0
+    operation['&&'] = lambda x,y: 1 if x != 0 and y != 0 else 0
+    operation['||'] = lambda x,y: 1 if x != 0 or y != 0 else 0
 
     def __init__(self, lhs, op, rhs):
         self.lhs = lhs
@@ -193,53 +197,28 @@ class BinaryOperation:
         self.rhs = rhs
 
     def evaluate(self, scope):
-        lval = self.lhs.evaluate(scope)
-        rval = self.rhs.evaluate(scope)
-        if self.op == "+":
-            return Number(lval.value + rval.value)
-        elif self.op == "-":
-            return Number(lval.value - rval.value)
-        elif self.op == "*":
-            return Number(lval.value * rval.value)
-        elif self.op == "/":
-            return Number(lval.value // rval.value)
-        elif self.op == "%":
-            return Number(lval.value % rval.value)
-        elif self.op == "==":
-            return Number(1) if lval.value == rval.value else Number(0)
-        elif self.op == "!=":
-            return Number(0) if lval.value == rval.value else Number(1)
-        elif self.op == "<":
-            return Number(1) if lval.value < rval.value else Number(0)
-        elif self.op == ">":
-            return Number(1) if lval.value > rval.value else Number(0)
-        elif self.op == ">=":
-            return Number(1) if lval.value >= rval.value else Number(0)
-        elif self.op == "<=":
-            return Number(1) if lval.value <= rval.value else Number(0)
-        elif self.op == "&&":
-            return Number(1) if (lval.value != 0) and (rval.value != 0) else Number(0)
-        elif self.op == "||":
-            return Number(1) if (lval.value != 0) or (rval.value != 0) else Number(0)
+        lval = self.lhs.evaluate(scope).value
+        rval = self.rhs.evaluate(scope).value
+        return Number(self.operation[self.op](lval, rval))
         
         
-
 class UnaryOperation:
 
     """UnaryOperation - представляет унарную операцию над выражением.
     Результатом вычисления унарной операции является объект Number.
     Поддерживаемые операции: “-”, “!”."""
 
+    operation = dict()
+    operation['-'] = lambda x: -x
+    operation['!'] = lambda x: 1 if x == 0 else 0
+
     def __init__(self, op, expr):
         self.op = op
         self.expr = expr
 
     def evaluate(self, scope):
-        val = self.expr.evaluate(scope)
-        if self.op == "-":
-            return Number(-val.value)
-        if self.op == "!":
-            return Number(1) if val.value == 0 else Number(0)
+        val = self.expr.evaluate(scope).value
+        return Number(self.operation[self.op](val))
 
 
 def example():
@@ -261,7 +240,10 @@ def my_tests():
     scope = Scope()
     Read('a').evaluate(scope)
     Read('b').evaluate(scope)
-    Conditional(BinaryOperation(BinaryOperation(BinaryOperation(Reference("a"),"+",Reference("b")), "%", Number(2)), "==", Number(0)), [Print(BinaryOperation(Reference("a"),"*",Reference("b")))],[Print(UnaryOperation("-", Reference("a")))]).evaluate(scope)
+    Conditional(BinaryOperation(BinaryOperation(BinaryOperation(
+                                  Reference("a"),"+",Reference("b")), "%", Number(2)), "==", Number(0)), 
+        [Print(BinaryOperation(Reference("a"),"*",Reference("b")))], #else
+        [Print(UnaryOperation("-", Reference("a")))]).evaluate(scope)
 
 if __name__ == '__main__':
     example()
