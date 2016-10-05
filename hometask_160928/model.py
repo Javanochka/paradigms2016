@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from operator import *
+
 # Шаблон для домашнѣго задания
 # Рѣализуйте мѣтоды с raise NotImplementedError
 
@@ -95,7 +97,7 @@ class Conditional:
 
     def evaluate(self, scope):
         body = self.if_false if self.condition.evaluate(scope).value == 0 else self.if_true
-        if body == None:
+        if not body:
             return None
         for expression in body[:-1]:
             expression.evaluate(scope)
@@ -176,21 +178,22 @@ class BinaryOperation:
     Поддерживаемые операции:
     “+”, “-”, “*”, “/”, “%”, “==”, “!=”,
     “<”, “>”, “<=”, “>=”, “&&”, “||”.""" 
-    operation = dict()
-    operation['+'] = lambda x,y: x + y
-    operation['-'] = lambda x,y: x - y
-    operation['*'] = lambda x,y: x * y
-    operation['/'] = lambda x,y: x // y
-    operation['%'] = lambda x,y: x % y
-    operation['=='] = lambda x,y: 1 if x == y else 0
-    operation['!='] = lambda x,y: 1 if x != y else 0
-    operation['<'] = lambda x,y: 1 if x < y else 0
-    operation['>'] = lambda x,y: 1 if x > y else 0
-    operation['<='] = lambda x,y: 1 if x <= y else 0
-    operation['>='] = lambda x,y: 1 if x >= y else 0
-    operation['&&'] = lambda x,y: 1 if x != 0 and y != 0 else 0
-    operation['||'] = lambda x,y: 1 if x != 0 or y != 0 else 0
-
+    operation = {
+        '+': add,
+        '-': sub,
+        '*': mul,
+        '/': floordiv,
+        '%': mod,
+        '==': eq,
+        '!=': ne,
+        '<': lt,
+        '>': gt,
+        '<=': le,
+        '>=': ge,
+        '&&': lambda x,y: 1 if x != 0 and y != 0 else 0,
+        '||': lambda x,y: 1 if x != 0 or y != 0 else 0
+    }
+    
     def __init__(self, lhs, op, rhs):
         self.lhs = lhs
         self.op = op
@@ -208,9 +211,10 @@ class UnaryOperation:
     Результатом вычисления унарной операции является объект Number.
     Поддерживаемые операции: “-”, “!”."""
 
-    operation = dict()
-    operation['-'] = lambda x: -x
-    operation['!'] = lambda x: 1 if x == 0 else 0
+    operation = {
+        '-': neg,
+        '!': not_
+    }
 
     def __init__(self, op, expr):
         self.op = op
