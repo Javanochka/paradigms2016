@@ -39,12 +39,15 @@ class PrinterVisitor:
         for expr in conditional.if_true:
             expr.accept(self)
         self.spaces -= 4
-        print(" " * self.spaces + "} else {")
-        self.spaces += 4
-        for expr in conditional.if_false:
-            expr.accept(self)
-        self.spaces -= 4
-        print(" " * self.spaces + "};")
+        if conditional.if_false == None:
+            print("};")
+        else:
+            print(" " * self.spaces + "} else {")
+            self.spaces += 4
+            for expr in conditional.if_false:
+                expr.accept(self)
+            self.spaces -= 4
+            print(" " * self.spaces + "};")
         
     def visitFunctionDefinition(self, fun_def):
         print(" " * self.spaces + "def {0}({1}) ".format(fun_def.name, ", ".join(fun_def.function.args)) + "{")

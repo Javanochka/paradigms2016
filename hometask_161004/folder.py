@@ -48,7 +48,7 @@ class ConstantFolderVisiter:
         return FunctionCall(fun_call.fun_expr.accept(self), [expr.accept(self) for expr in fun_call.args])
 
     def visitConditional(self, cond):
-        return Conditional(cond.condition.accept(self), [expr.accept(self) for expr in if_true], [expr.accept(self) for expr in if_false])
+        return Conditional(cond.condition.accept(self), [expr.accept(self) for expr in cond.if_true], None if cond.if_false == None else [expr.accept(self) for expr in cond.if_false])
 
 
 def example():
