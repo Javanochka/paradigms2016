@@ -1,14 +1,14 @@
 #include "thread_pool.h"
 #include "stdio.h"
 
-static volatile int cont = 1;
 
 void *consumer(void *data) {
-	squeue_t *queue = (squeue_t*)data;
+	ThreadPool_t* pool = (ThreadPool_t*)data;	
+	squeue_t *queue = &pool->task_queue;
 
-	while (cont || squeue_size(queue)) {
+	while (pool->cont || squeue_size(queue)) {
 		pthread_mutex_lock(&queue->mutex);
-		while (cont && !squeue_size(queue)) {
+		while (pool->cont && !squeue_size(queue)) {
 			pthread_cond_wait(&queue->cond, &queue->mutex);
 		}
 		list_node_t* node = queue_pop(&queue->queue);
@@ -37,11 +37,12 @@ Task_t* new_task(void (*f)(void *), void* arg) {
 }
 
 void thpool_init(ThreadPool_t* pool, unsigned threads_nm) {
+	pool->cont = 1;
 	pool->threads_nm = threads_nm;
 	pool->all_threads = malloc(threads_nm*sizeof(pthread_t));
 	squeue_init(&pool->task_queue);
 	for(int i = 0; i < threads_nm; i++) {
-		pthread_create(&pool->all_threads[i], NULL, consumer, &pool->task_queue);
+		pthread_create(&pool->all_threads[i], NULL, consumer, pool);
 	}
 }
 
@@ -62,7 +63,7 @@ void thpool_wait(Task_t* task) {
 
 void thpool_finit(ThreadPool_t* pool) {
 	pthread_mutex_lock(&pool->task_queue.mutex);
-	cont = 0;
+	pool->cont = 0;
 	pthread_mutex_unlock(&pool->task_queue.mutex);
 	
 	squeue_notify_all(&pool->task_queue);

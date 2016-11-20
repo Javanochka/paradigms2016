@@ -41,7 +41,7 @@ void sort_fun(void* arg) {
 		qsort(data->arr, data->len, sizeof(int), compare_int);
 		return;
 	}
-	int part_el = data->arr[rand() % data->len];
+	int part_el = data->arr[data->len/2];
 	int i = 0;
 	int j = data->len-1;
 	do {

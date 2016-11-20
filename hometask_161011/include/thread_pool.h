@@ -18,6 +18,7 @@ typedef struct ThreadPool {
 	pthread_t* all_threads;
 	unsigned threads_nm;
 	squeue_t task_queue; //queue of Tasks
+	volatile bool cont;
 	
 } ThreadPool_t;
 
